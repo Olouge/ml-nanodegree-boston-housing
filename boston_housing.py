@@ -10,7 +10,7 @@ from sklearn.tree import DecisionTreeRegressor
 ### ADD EXTRA LIBRARIES HERE ###
 ################################
 from sklearn.cross_validation import train_test_split
-from sklearn.metrics import r2_score, make_scorer
+from sklearn.metrics import mean_squared_error, make_scorer
 from sklearn import grid_search
 
 def load_data():
@@ -63,7 +63,6 @@ def explore_city_data(city_data):
     std_price = np.std(housing_prices)
     print "Calculate standard deviation (in $1000's)? " + str(std_price)
 
-
     # I added a plot to help illsutrate these diescriptive statistics.
     pl.figure()
     pl.title('Distribution of Boston House Prices')
@@ -101,10 +100,10 @@ def performance_metric(label, prediction):
 
     # The following page has a table of scoring functions in sklearn:
     # http://scikit-learn.org/stable/modules/classes.html#sklearn-metrics-metrics
-    return r2_score(label, prediction)
+    return mean_squared_error(label, prediction)
 
 
-def learning_curve(depth, X_train, y_train, X_test, y_test):
+def learning_curve(depth, X_train, y_train, X_test, y_test, show_plot=True):
     """Calculate the performance of the model after a set of training data."""
 
     # We will vary the training set size so that we have 50 different sizes
@@ -112,8 +111,8 @@ def learning_curve(depth, X_train, y_train, X_test, y_test):
     train_err = np.zeros(len(sizes))
     test_err = np.zeros(len(sizes))
 
-    print "Decision Tree with Max Depth: "
-    print depth
+    if show_plot:
+        print "Decision Tree with Max Depth: " + str(depth)
 
     for i, s in enumerate(sizes):
 
@@ -127,26 +126,31 @@ def learning_curve(depth, X_train, y_train, X_test, y_test):
 
 
     # Plot learning curve graph
-    learning_curve_graph(sizes, train_err, test_err)
+    if show_plot:
+        learning_curve_graph(depth, sizes, train_err, test_err)
+    return [sizes, train_err, test_err]
 
 
-def learning_curve_graph(sizes, train_err, test_err):
+def learning_curve_graph(depth, sizes, train_err, test_err):
     """Plot training and test error as a function of the training size."""
 
     pl.figure()
-    pl.title('Decision Trees: Performance vs Training Size')
+    title = "Decision Trees with Max Depth " + str(depth) + ": \n Performance vs Training Size"
+    pl.title(title)
     pl.plot(sizes, test_err, lw=2, label = 'test error')
     pl.plot(sizes, train_err, lw=2, label = 'training error')
-    pl.legend(loc=4)
+    pl.legend()
     pl.xlabel('Training Size')
     pl.ylabel('Error')
+    pl.xlim(sizes[0], sizes[-1])
     pl.show()
 
 
-def model_complexity(X_train, y_train, X_test, y_test):
+def model_complexity(X_train, y_train, X_test, y_test, show_plot=True):
     """Calculate the performance of the model as model complexity increases."""
 
-    print "Model Complexity: "
+    if show_plot:
+        print "Model Complexity: "
 
     # We will vary the depth of decision trees from 2 to 25
     max_depth = np.arange(1, 25)
@@ -167,7 +171,9 @@ def model_complexity(X_train, y_train, X_test, y_test):
         test_err[i] = performance_metric(y_test, regressor.predict(X_test))
 
     # Plot the model complexity graph
-    model_complexity_graph(max_depth, train_err, test_err)
+    if show_plot:
+        model_complexity_graph(max_depth, train_err, test_err)
+    return [max_depth, train_err, test_err]
 
 
 def model_complexity_graph(max_depth, train_err, test_err):
@@ -177,9 +183,10 @@ def model_complexity_graph(max_depth, train_err, test_err):
     pl.title('Decision Trees: Performance vs Max Depth')
     pl.plot(max_depth, test_err, lw=2, label = 'test error')
     pl.plot(max_depth, train_err, lw=2, label = 'training error')
-    pl.legend(loc=4)
+    pl.legend()
     pl.xlabel('Max Depth')
     pl.ylabel('Error')
+    pl.xlim(max_depth[0], max_depth[-1])
     pl.show()
 
 
@@ -201,29 +208,32 @@ def fit_predict_model(city_data):
     # 1. Find an appropriate performance metric. This should be the same as the
     # one used in your performance_metric procedure above:
     # http://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html
-    scorer = make_scorer(r2_score)
+    scorer = make_scorer(mean_squared_error, greater_is_better=False)
 
     # 2. We will use grid search to fine tune the Decision Tree Regressor and
     # obtain the parameters that generate the best training performance. Set up
     # the grid search object here.
     # http://scikit-learn.org/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
-    reg = grid_search.GridSearchCV(regressor, parameters, scoring=scorer)
+    reg = grid_search.GridSearchCV(regressor, parameters, scoring=scorer, cv=10)
 
 
     # Fit the learner to the training data to obtain the best parameter set
     reg = reg.fit(X, y)
     print "Final Model: "
-    print reg
+    best_model = reg.best_estimator_
+    print best_model
+
+    print "All scores: " + str(reg.grid_scores_)
 
     # I have added additional print statements to help undertand output of the Grid Search.
     optim_max_depth = reg.best_params_['max_depth']
     score = reg.best_score_
-    print "The optimal max_dpeth parameter found by Grid Search: " + str(optim_max_depth)
+    print "The optimal max_depth parameter found by Grid Search: " + str(optim_max_depth)
     print "The score given by Grid Search for the optimal model: " + str(score)
 
     # Use the model to predict the output of a particular sample
     x = [11.95, 0.00, 18.100, 0, 0.6590, 5.6090, 90.00, 1.385, 24, 680.0, 20.20, 332.09, 12.13]
-    y = reg.predict(x)
+    y = best_model.predict(x)
     print "House: " + str(x)
     print "Prediction: " + str(y)
 
@@ -267,6 +277,113 @@ def main():
     #
     #  return results
 
+# ******************************************************************************
+# The following code was written in adition to the requirements of the project
+# in order to more thoroughly explore the data and the model evaluation process.
+
+## Produces a scatter plot for every feature in city_data against the target.
+def plot_each_feature_vs_target(city_data):
+    feature_names = city_data['feature_names']
+    data = city_data.data
+    targets = city_data.target
+
+    for i in xrange(len(feature_names)):
+        feature_data = [ datum[i] for datum in data]
+        feature_name = feature_names[i]
+        pl.figure()
+        pl.title("Boston House Data: " + feature_name + " vs MEDV")
+        pl.scatter(feature_data, city_data.target, alpha=0.2)
+        pl.xlabel(feature_name)
+        pl.ylabel('MEDV ($1000)')
+        pl.show()
+
+## Produces a plot with all 100 learning curves along with an average of those
+## curves for each value in the list of max_depths.
+def draw_averaged_learning_curves(max_depths, sets_of_learning_curve_data):
+    for max_depth in max_depths:
+        learning_curve_data = sets_of_learning_curve_data[max_depth - 1]
+        sizes = learning_curve_data[0][0]
+        pl.figure()
+        title = "Decision Trees with Max Depth " + str(max_depth) + ": \n Performance vs Training Size for 100 iterations"
+        pl.title(title)
+        all_test_errors = []
+        all_training_errors = []
+        for learning_curve in learning_curve_data:
+            training_error = learning_curve[1]
+            test_error = learning_curve[2]
+            all_training_errors.append(training_error)
+            all_test_errors.append(test_error)
+            pl.plot(sizes, training_error, color='g', alpha= 0.03, lw=1)
+            pl.plot(sizes, test_error, color='b', alpha= 0.03, lw=1)
+
+        pl.plot(sizes, np.mean(all_training_errors, axis=0), color='g', lw=2, label = 'mean training error')
+        pl.plot(sizes, np.mean(all_test_errors, axis=0), color='b', lw=2, label = 'mean test error')
+        pl.legend()
+        pl.xlabel('Training Size')
+        pl.ylabel('Error')
+        pl.ylim(0,200)
+        pl.xlim(0,sizes[-1])
+        pl.show()
+
+## Produces a plot with all 100 model complexity curves along with an average of
+## those curves.
+def draw_averaged__model_complexity(sets_of_model_complexity_data):
+    pl.figure()
+    title = "Decision Trees: \n Performance vs Max Depth for 100 iterations"
+    pl.title(title)
+    all_test_errors = []
+    all_training_errors = []
+    max_depth = sets_of_model_complexity_data[0][0]
+    for model_complexity_curve in sets_of_model_complexity_data:
+        training_error = model_complexity_curve[1]
+        test_error = model_complexity_curve[2]
+        all_training_errors.append(training_error)
+        all_test_errors.append(test_error)
+        pl.plot(max_depth, training_error, color='g', alpha= 0.01, lw=1)
+        pl.plot(max_depth, test_error, color='b', alpha= 0.01, lw=1)
+
+    mean_training_errors = np.mean(all_test_errors, axis=0)
+    mean_test_errors = np.mean(all_test_errors, axis=0)
+
+    pl.plot(max_depth, mean_training_errors, color='g', lw=2, label = 'mean training error')
+    pl.plot(max_depth, mean_test_errors, color='b', lw=2, label = 'mean test error')
+    pl.legend()
+    pl.xlabel('Max Depth')
+    pl.ylabel('Error')
+    pl.xlim(max_depth[0], max_depth[-1])
+    pl.show()
+
+    # Print the max_depth value where the mean test error is minimised.
+    minimum_mean_test_error = np.min(mean_test_errors)
+    optimal_max_depth = max_depth[mean_test_errors.tolist().index(minimum_mean_test_error)]
+    print "Optimal Maximum Depth: " + str(optimal_max_depth)
+
+## Iterated over the learning curve and model complexity code 100 times where
+## each iteration receives newly split training and test data. The results of
+## this process is then plotted.
+def explore_100_iterations():
+    city_data = load_data()
+    max_depths = [1,2,3,4,5,6,7,8,9,10]
+    one_hundred_sets_of_learning_curve_data = []
+    one_hundred_sets_of_model_complexity_data = []
+
+    print "This will take some time. Now might be a good time to take a break and make a nice hot cup of tea."
+
+    for max_depth in max_depths:
+        one_hundred_sets_of_learning_curve_data.append([])
+        for i in xrange(100):
+            X_train, y_train, X_test, y_test = split_data(city_data)
+
+            learning_curve_data = learning_curve(max_depth, X_train, y_train, X_test, y_test, False)
+            one_hundred_sets_of_learning_curve_data[max_depth - 1].append(learning_curve_data)
+
+            model_complexity_data = model_complexity(X_train, y_train, X_test, y_test, False)
+            one_hundred_sets_of_model_complexity_data.append(model_complexity_data)
+
+    draw_averaged_learning_curves(max_depths, one_hundred_sets_of_learning_curve_data)
+    draw_averaged__model_complexity(one_hundred_sets_of_model_complexity_data)
+
+# ******************************************************************************
 
 if __name__ == "__main__":
     main()
