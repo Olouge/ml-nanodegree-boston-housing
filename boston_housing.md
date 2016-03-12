@@ -27,7 +27,6 @@ Features (in order):
 And the target value:
 + **MEDV**     Median value of owner-occupied homes in $1000's
 
-<div class="page-break-after:always;"></div>
 
 ## Statistical Analysis and Data Exploration
 
@@ -60,7 +59,6 @@ ___
 *The plot of LSTAT vs MEDV shows that a linear model would fit the % lower status feature quite badly.*
 ___
 
-<div class="page-break-after:always;"></div>
 
 ## Evaluating Model Performance
 
@@ -86,7 +84,6 @@ As a result of these benefits, cross-validation in conjunction with grid search 
 
 [1]: Spiess, Andrej-Nikolai, Natalie Neumeyer. An evaluation of R2 as an inadequate measure for nonlinear models in pharmacological and biochemical research: a Monte Carlo approach. BMC Pharmacology. 2010; 10: 6.
 
-<div class="page-break-after:always;"></div>
 
 ## Analysing Model Performance
 
@@ -130,7 +127,6 @@ ___
 
 [2]: Murphy, Kevin P. "16.2.4 Pros and Cons of Trees." Machine Learning: A Probabilistic Perspective. Cambridge, MA: MIT, 2012. N. pag. Print.
 
-<div class="page-break-after:always;"></div>
 
 ## Model Prediction
 
@@ -170,8 +166,6 @@ Results ordered by Maximum Depth (from a sample of 1000 results):
 ___
 
 The above distribution has a median maximum depth value of 7 and mean of 6.874. These two statistics suggest that the model with a maximum depth of 7 is the best estimator of those evaluated by the grid search. The prediction for the median value of owner-occupied homes in $1000's (MEDV) given by this model is 19.9975. This prediction is well within the distribution of the MEDV values shown in the statistical analysis of the Boston housing data set. In fact this prediction lies just below the median and mean of the MEDV values which suggests, assuming the model is accurate, that the test prediction parameters may be close of the mean of each parameter distribution. Naturally these values are easy to calculate. The test prediction parameters are not exactly the mean of each distribution, but are close enough to believe that the predicted MEDV value is valid and in turn that the trained model is valid.
-
-<div class="page-break-after:always;"></div>
 
 ## Appendices
 
@@ -230,7 +224,6 @@ ___
 *The plot of LSTAT (% lower status of the population) vs MEDV (Median value of owner-occupied homes in $1000's).*
 ___
 
-<div class="page-break-after:always;"></div>
 
 ### Appendix B: Learning Curve and Model Complexity Graphs (single iteration)
 ___
@@ -279,7 +272,6 @@ ___
 *Decision Tree Performance compared to the model complexity.*
 ___
 
-<div class="page-break-after:always;"></div>
 
 ### Appendix C: Learning Curve and Model Complexity Graphs (100 iterations)
 ___
