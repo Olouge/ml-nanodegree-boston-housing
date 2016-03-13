@@ -115,6 +115,7 @@ def learning_curve(depth, X_train, y_train, X_test, y_test, show_plot=True):
         print "Decision Tree with Max Depth: " + str(depth)
 
     for i, s in enumerate(sizes):
+        s = int(s)
 
         # Create and fit the decision tree regressor model
         regressor = DecisionTreeRegressor(max_depth=depth)
@@ -190,7 +191,7 @@ def model_complexity_graph(max_depth, train_err, test_err):
     pl.show()
 
 
-def fit_predict_model(city_data):
+def fit_predict_model(city_data, print_output=True):
     """Find and tune the optimal model. Make a prediction on housing data."""
 
     # Get the features and labels from the Boston housing data
@@ -214,28 +215,33 @@ def fit_predict_model(city_data):
     # obtain the parameters that generate the best training performance. Set up
     # the grid search object here.
     # http://scikit-learn.org/stable/modules/generated/sklearn.grid_search.GridSearchCV.html#sklearn.grid_search.GridSearchCV
-    reg = grid_search.GridSearchCV(regressor, parameters, scoring=scorer, cv=10)
+    reg = grid_search.GridSearchCV(regressor, parameters, scoring=scorer)
 
 
     # Fit the learner to the training data to obtain the best parameter set
     reg = reg.fit(X, y)
-    print "Final Model: "
     best_model = reg.best_estimator_
-    print best_model
+    if print_output:
+        print "Final Model: "
+        print best_model
 
-    print "All scores: " + str(reg.grid_scores_)
+        print "All scores: " + str(reg.grid_scores_)
 
     # I have added additional print statements to help undertand output of the Grid Search.
     optim_max_depth = reg.best_params_['max_depth']
     score = reg.best_score_
-    print "The optimal max_depth parameter found by Grid Search: " + str(optim_max_depth)
-    print "The score given by Grid Search for the optimal model: " + str(score)
+
+    if print_output:
+        print "The optimal max_depth parameter found by Grid Search: " + str(optim_max_depth)
+        print "The score given by Grid Search for the optimal model: " + str(score)
 
     # Use the model to predict the output of a particular sample
     x = [11.95, 0.00, 18.100, 0, 0.6590, 5.6090, 90.00, 1.385, 24, 680.0, 20.20, 332.09, 12.13]
-    y = best_model.predict(x)
-    print "House: " + str(x)
-    print "Prediction: " + str(y)
+    y = best_model.predict([x])
+
+    if print_output:
+        print "House: " + str(x)
+        print "Prediction: " + str(y)
 
     # By returning this tuple of max_depth, model score and predictin, it is possible to analyse a sample of results.
     return (optim_max_depth, score, y[0])
@@ -243,7 +249,7 @@ def fit_predict_model(city_data):
 # In the case of the documentation page for GridSearchCV, it might be the
 # case that the example is just a demonstration of syntax for use of the
 # function, rather than a statement about
-def main():
+def main(sample_multiple_results = False, sample_size = 1000):
     """Analyze the Boston housing data. Evaluate and validate the
     performanance of a Decision Tree regressor on the housing data.
     Fine tune the model to make prediction on unseen data."""
@@ -251,31 +257,28 @@ def main():
     # Load data
     city_data = load_data()
 
-    # Explore the data
-    explore_city_data(city_data)
+    if sample_multiple_results:
+        results = []
+        for i in xrange(sample_size):
+            results.append(fit_predict_model(city_data, False))
+        return results
+    else:
+        # Explore the data
+        explore_city_data(city_data)
 
-    # Training/Test dataset split
-    X_train, y_train, X_test, y_test = split_data(city_data)
+        # Training/Test dataset split
+        X_train, y_train, X_test, y_test = split_data(city_data)
 
-    # Learning Curve Graphs
-    max_depths = [1,2,3,4,5,6,7,8,9,10]
-    for max_depth in max_depths:
-        learning_curve(max_depth, X_train, y_train, X_test, y_test)
+        # Learning Curve Graphs
+        max_depths = [1,2,3,4,5,6,7,8,9,10]
+        for max_depth in max_depths:
+            learning_curve(max_depth, X_train, y_train, X_test, y_test)
 
-    # Model Complexity Graph
-    model_complexity(X_train, y_train, X_test, y_test)
+        # Model Complexity Graph
+        model_complexity(X_train, y_train, X_test, y_test)
 
-    # Tune and predict Model
-    fit_predict_model(city_data)
-
-    # If sampling is desired to allow for further analysis of the results,
-    # uncomment the following code. Note the code to do the analysis is not
-    # included in this code.
-    #  results = []
-    #  for i in xrange(1000):
-    #      results.append(fit_predict_model(city_data))
-    #
-    #  return results
+        # Tune and predict Model
+        fit_predict_model(city_data)
 
 # ******************************************************************************
 # The following code was written in adition to the requirements of the project
