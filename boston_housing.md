@@ -167,6 +167,8 @@ ___
 
 The above distribution has a median maximum depth value of 7 and mean of 6.874. These two statistics suggest that the model with a maximum depth of 7 is the best estimator of those evaluated by the grid search. The prediction for the median value of owner-occupied homes in $1000's (MEDV) given by this model is 19.9975. This prediction is well within the distribution of the MEDV values shown in the statistical analysis of the Boston housing data set. In fact this prediction lies just below the median and mean of the MEDV values which suggests, assuming the model is accurate, that the test prediction parameters may be close of the mean of each parameter distribution. Naturally these values are easy to calculate. The test prediction parameters are not exactly the mean of each distribution, but are close enough to believe that the predicted MEDV value is valid and in turn that the trained model is valid.
 
+Another way to test how well the optimal model performs given the test datum is to compare the mean target value for the K Nearest Neighbors given that datum. For this test will will find the mean target for the 10 nearest neighbors which turns out to be 21.25 MEDV. More importantly, we will consider the difference between the 10-NN mean MEDV and the model pridction in terms of the standard deviation for all MEDV values. This value is -0.165705. This is very close to a sixth of a standard deviation which is certainly close enough to accept the model prediction. 
+
 ## Appendices
 
 ### Appendix A: Relationships Between Each Feature and the Target (MEDV)
