@@ -5,6 +5,8 @@ Project submission by Edward Minnett (ed@methodic.io).
 
 March 13th 2016. (Revision 3)
 
+----------
+
 ## A Brief Introduction
 
 The purpose of this project is to explore the 'Hedonic prices and the demand for clean air' Boston house price data of D. Harrison and D.L. Rubinfeld (from the StatLib library which is maintained at Carnegie Mellon University). More specifically, this project attempts to apply Grid Search hyperparameter optimisation to a Decision Tree Regressor that is in itself applied to the 13 feature data set. The features are described below. The data set includes a 14th feature that will act as the target value of the regressor. It is also worth noting that these target values represent the median value of owner-occupied homes in $1000's. This suggests that each record is a summary of multiple houses and do not represent individual houses.
